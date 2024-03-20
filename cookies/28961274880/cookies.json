@@ -1,0 +1,45 @@
+[
+  {
+    "name": "traacRef",
+    "value": "{%22initial-referring-domain%22:%22$direct%22%2C%22initial-referrer%22:%22$direct%22}",
+    "domain": "onvio.com.br",
+    "path": "/",
+    "expires": 1742412821,
+    "size": 93,
+    "httpOnly": false,
+    "secure": false,
+    "session": false,
+    "priority": "Medium",
+    "sameParty": false,
+    "sourceScheme": "Secure"
+  },
+  {
+    "name": "UDSLongToken",
+    "value": "5AD477BE620B47AD8D7CA36B11A08704",
+    "domain": "onvio.com.br",
+    "path": "/",
+    "expires": -1,
+    "size": 44,
+    "httpOnly": false,
+    "secure": false,
+    "session": true,
+    "priority": "Medium",
+    "sameParty": false,
+    "sourceScheme": "Secure"
+  },
+  {
+    "name": "BMLanguageCode",
+    "value": "pt-BR",
+    "domain": "onvio.com.br",
+    "path": "/portaldoempregado",
+    "expires": -1,
+    "size": 19,
+    "httpOnly": false,
+    "secure": false,
+    "session": true,
+    "sameSite": "Lax",
+    "priority": "Medium",
+    "sameParty": false,
+    "sourceScheme": "Secure"
+  }
+]

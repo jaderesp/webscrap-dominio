@@ -1,0 +1,96 @@
+<body class="text-center">
+
+    <!-- Image and text -->
+    <nav class="navbar navbar-night bg-light">        
+        <img src="assets/img/logo/cliente.png" width="60" height="60" class="d-inline-block align-top" alt="">
+        <span>Seja bem vindo, <%= usuario.sessao.nome  %>.</span>
+       
+        <form id="form1" action="/logoff" method="POST">
+              <input type="text" name="instancia" hidden value="<%= dados.instancia %>">
+            <a class="navbar-brand" href="javascript:;" onclick="document.getElementById('form1').submit();">
+              Sair
+            </a>
+        </form>
+      
+    </nav>
+
+    <div class="container">
+      <br>
+       
+      <br>
+        <div class="d-flex justify-content-center">
+
+            <!-- valores para tratamento via javascript-->
+            <input type="hidden" id="instancia" value="<%= dados.instancia %>" class="">
+            <input type="hidden" id="qrcode" value="<%= dados.qrcode %>" class="">
+            <input type="hidden" id="status" value="<%= dados.status %>" class="">
+            <input type="hidden" id="sessao" value="<%= usuario %>" class="">           
+
+            <form action="/inicialize" method="POST" class="form-signin">
+
+                <% if(!dados.status && !dados.qrcode){ %>
+                  <h1 class="h3 mb-3 font-weight-normal">Conectar Instancia <%= dados.instancia %></h1>
+                <% } %> 
+
+                 <!-- se gerado instancias mas qrcode ainda não gerado aguardar alguns segundos -->
+                 <% if(dados.status == 'UNPAIRED' && !dados.qrcode){ %>
+                  <h1 id="qrcodeTitle" class="h3 mb-3 font-weight-normal">Gerando o Qrcode para  <%= dados.instancia %>...</h1>
+                  <img id="qrcodeImg" class="mb-4" src="assets/img/conection/loadingqr.gif" alt="" width="162" height="162">
+                <% } %>
+
+                <% if(dados.status == 'UNPAIRED'  && dados.qrcode){ %>
+                  <h1 class="h3 mb-3 font-weight-normal">Faça Leitura do Qrcode.</h1>
+                  <img id="qrcodeImg" class="mb-4" src="<%= dados.qrcode %>" alt="" width="162" height="162">
+                <% } %>
+               
+                <% if(dados.status == 'DISCONECTED'){ %>
+                  <h1 id="qrcodeTitle" class="h3 mb-3 font-weight-normal">Instancia  <%= dados.instancia %> Desconectada.</h1>
+                  <img id="qrcodeImg" class="mb-4" src="assets/img/conection/disconnected.png" alt="" width="162" height="162">
+                 
+                <% } %>
+
+                <% if(dados.status == true && dados.qrcode == 'syncronized'){ %>
+                  <h1 id="qrcodeTitle" class="h3 mb-3 font-weight-normal">Instancia  <%= dados.instancia %> Conectada.</h1>
+                  <img id="qrcodeImg" class="mb-4" src="assets/img/conection/success.png" alt="" width="162" height="162">
+                                  
+                <% } %>
+                <div class="form-group">
+
+                  <label for="inputEmail" class="sr-only">Instancia</label>
+                  <% if(dados.instancia == ''){ %>
+                  <input type="text" name="instancia" class="form-control" placeholder="Nome da Instancia" value="<%= usuario.sessao.instancia  %>" required="" autofocus="">
+                  <% } %>
+
+                  <% if(dados.instancia !== ''){ %>
+                    <input type="text" name="instancia" hidden value="<%= dados.instancia %>" class="form-control" placeholder="Nome da Instancia" required="" autofocus="">
+                  <% } %>
+
+                </div>
+                
+                <div class="content">
+                  <% if(dados.status != true && dados.qrcode != 'syncronized'){ %>
+                    <button class="btn btn-primary btn-sm" type="submit">Gerar o Qrcode</button>
+                  <% } %>
+                </div>
+                
+                
+              </form>                    
+             
+        </div>
+        <br>
+         <!-- remover a sessão -->
+         <% if(dados.status == true && dados.qrcode == 'syncronized' || dados.status == 'DISCONECTED' || dados.status == 'UNPAIRED'){ %>
+          <div class="d-flex justify-content-center">
+            <form id="form1" action="/destroy" method="POST">
+              <input type="text" name="instancia" hidden value="<%= dados.instancia %>">
+              <button class="btn btn-default btn-md" onclick="document.getElementById('form1').submit();">
+                Remover
+              </button>
+          </form>
+          </div>
+      
+        <% } %>
+        <p class="mt-5 mb-3 text-muted">Produzido por JMSoft © 2021</p>
+    </div>  
+
+</body>

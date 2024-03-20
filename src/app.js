@@ -1,20 +1,11 @@
-const { auth } = require("./controller/client")
-const { selectMenu, objFolhaPagto } = require("./controller/Painel_controller")
+'use strict'
+/* link referencias Criando APIs com NodeJs - Aula 10: CRUD REST: https://www.youtube.com/watch?v=FXQ3ZZh5jh4 */
+var indexRoutes = require('./routes/index')
 
-const start = async () => {
+/* tornar ilimitado eventorListener da memória (para não causar estouro de memoria) */
+require('events').EventEmitter.prototype._maxListeners = 0;
 
+var app = indexRoutes.rotas();
 
-    let page = await auth()
-
-    //clicar no menu desejado e fazer download do arquivo conforme referencia
-    page = await selectMenu(page, "Folhas de Pagamento")
-
-    let objFolhaData = await objFolhaPagto(page, "download", "02/2024")
-
-    console.log(objFolhaData)
-
-
-}
-
-
-start()
+/* exportar -- poder usar em outro arquivo ou modulo */
+module.exports = app;

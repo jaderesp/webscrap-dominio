@@ -1,0 +1,70 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "I.API-js",
+        "description": "A i.api-js é uma api desenvolvida em javascript, para fornecer funcionalidades de treinamento da I.A. chatgpt."
+    },
+    "tags": [
+        {
+            "name": "chatMyGpt",
+            "description": ""
+        }
+    ],
+    "servers": [
+        {
+            "url": "https://dev.watszap.com.br/",
+            "description": "Documentação de ambiente de desenvolvimento."
+        }
+    ],
+    "paths": {
+        "/chatMyGpt": {
+            "post": {
+                "tags": [
+                    "chatMyGpt"
+                ],
+                "description": "Função que possiblita envio de mensagens para I.A. solicitando informação desejada.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/chatMyGpt"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "message",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Qual a formula para calcular um pi de uma área?"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "chatMyGpt": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

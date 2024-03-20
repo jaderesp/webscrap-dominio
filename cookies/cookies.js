@@ -4,20 +4,24 @@ const { executablePath } = require('puppeteer')
 const fs = require("fs").promises
 const config = require("../config/browser")
 
+const dotenv = require('dotenv');
+dotenv.config();
+const { PORTAL_URL, USER, SENHA, FLAG_OS, WINDOWS_PATCH, LINUX_PATCH } = process.env;
+
 puppeteer.use(StealthPlugin());
 
 let launchOptions = {
     headless: false,
-    executablePath: '/usr/bin/chromium-browser', // because we are using puppeteer-core so we must define this option
+    executablePath: (FLAG_OS == 'windows') ? WINDOWS_PATCH : LINUX_PATCH, // because we are using puppeteer-core so we must define this option
     args: config.browser,
     ignoreDefaultArgs: ["--disable-extensions"],
     slowMo: 100,
 };
 
-const login = async (email, password) => {
+const genarate = async (email, password) => {
     const browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
-    await page.goto('https://chat.openai.com/chat');
+    await page.goto(PORTAL_URL);
     await page.setDefaultTimeout(0);
     await page.waitForSelector("div > div.flex.flex-row.gap-3 > button:nth-child(1)");
     await page.click("div > div.flex.flex-row.gap-3 > button:nth-child(1)");
@@ -34,5 +38,5 @@ const login = async (email, password) => {
     await browser.close();
 }
 
-module.exports = login;
+module.exports = { genarate };
 
