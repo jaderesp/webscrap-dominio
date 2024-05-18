@@ -6,6 +6,7 @@ const fs = require("fs")
 const dotenv = require('dotenv');
 dotenv.config();
 const { PORTAL_URL, USER, SENHA, FLAG_OS, WINDOWS_PATCH, LINUX_PATCH } = process.env;
+var sessions = []
 //puppeteer.use(StealthPlugin());
 
 //console.log(executablePath())
@@ -88,8 +89,15 @@ const auth = async (idFuncionario) => {
                 fs.writeFile(fileDir, JSON.stringify(cookies, null, 2));
             }
 
-            await fs.writeFile(fileDir, JSON.stringify(cookies, null, 2));
+            try {
 
+                fs.writeFileSync(fileDir, JSON.stringify(cookies, null, 2));
+
+            } catch (error) {
+
+                console.log("\r\n Erro ao gerar o cookie: ", error)
+
+            }
             console.log("Cookies are ready");
 
             await page.waitForNavigation()
@@ -127,6 +135,15 @@ const verifyLogged = async (page) => {
             resolve(false)
         }
     })
+}
+
+
+const setupSession = async (page) => {
+    return new Promise(async (resolve) => {
+
+
+    })
+
 }
 
 module.exports = { auth };

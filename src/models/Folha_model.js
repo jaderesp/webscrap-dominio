@@ -162,14 +162,14 @@ const holerite = async (fileId, accountId, idFuncionario) => {
                     resolve({ "pdf": `files/holerites/${idFuncionario}/${fileId}.pdf` })
                 })
                 .catch((error) => {
-                    console.log(error);
+                    console.log("\r\n Ocorreu um erro ao realizar download do holerite: ", error);
                     resolve(false)
                 });
 
         } catch (error) {
 
             console.log | ("\r\nOcorreu um erro ao executar a função: ", error)
-            resolve(false)
+            resolve({ "retorno": false })
 
         }
 
@@ -179,3 +179,4 @@ const holerite = async (fileId, accountId, idFuncionario) => {
 }
 
 module.exports = { accountData, folhaList, holerite }
+
