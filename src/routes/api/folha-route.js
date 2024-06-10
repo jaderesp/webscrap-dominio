@@ -6,17 +6,17 @@ const start = async (req, res) => {
 
     return new Promise(async (resolve, reject) => {
 
-        const { cpf, type } = req.body
+        const { cpf, type, removeCache } = req.body
 
-        let page = await auth(cpf)
+        let page = await auth(cpf, removeCache)
 
         //clicar no menu desejado e fazer download do arquivo conforme referencia
-        page = await selectMenu(page, type)
+        //page = await selectMenu(page, type)
 
-        let objFolhaData = await objFolhaPagto(page, "download", "02/2024")
+        // let objFolhaData = await objFolhaPagto(page, "download", "02/2024")
 
-        console.log(objFolhaData)
-        resolve(res.status(200).send(objFolhaData))
+        // console.log(objFolhaData)
+        resolve(res.status(200).send({ "result": true, "page": page }))
 
     })
 }

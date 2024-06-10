@@ -7,6 +7,13 @@ const accountData = async (idFuncionario) => {
 
     return new Promise(async (resolve, reject) => {
 
+        let fileExist = (fs.existsSync(`./cookies/${idFuncionario}/cookies.json`))
+
+        if (!fileExist) {
+            console.log("\r\n Arquivo de cookies não encontrado, realizar login (gerar novas credenciais).")
+            resolve(false)
+        }
+
         const cookiesString = fs.readFileSync(`./cookies/${idFuncionario}/cookies.json`);
         const cookies = JSON.parse(cookiesString);
 
@@ -60,8 +67,21 @@ const folhaList = async (accountId, idFuncionario) => {
 
     return new Promise(async (resolve, reject) => {
 
-        const cookiesString = fs.readFileSync(`./cookies/${idFuncionario}/cookies.json`);
-        const cookies = JSON.parse(cookiesString);
+        let cookiesString = ""
+        let cookies = {}
+
+        try {
+
+            cookiesString = fs.readFileSync(`./cookies/${idFuncionario}/cookies.json`);
+
+            cookies = JSON.parse(cookiesString);
+
+        } catch (error) {
+            resolve({ "resultado": false, "erro": error.toString() })
+            return;
+        }
+
+
 
         let { value } = cookies[1]
 
@@ -118,8 +138,19 @@ const holerite = async (fileId, accountId, idFuncionario) => {
 
     return new Promise(async (resolve, reject) => {
 
-        const cookiesString = fs.readFileSync(`./cookies/${idFuncionario}/cookies.json`);
-        const cookies = JSON.parse(cookiesString);
+        let cookiesString = ""
+        let cookies = {}
+
+        try {
+
+            cookiesString = fs.readFileSync(`./cookies/${idFuncionario}/cookies.json`);
+
+            cookies = JSON.parse(cookiesString);
+
+        } catch (error) {
+            resolve({ "resultado": false, "erro": error.toString() })
+            return;
+        }
 
         let { value } = cookies[1]
 

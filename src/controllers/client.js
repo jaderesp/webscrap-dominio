@@ -3,6 +3,8 @@ const puppeteer = require('puppeteer-core');
 //const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 const config = require("../../config/browser")
 const fs = require("fs")
+const { removeDirectory } = require("./utils/filesUtils")
+var fsp = require('fs/promises');
 const dotenv = require('dotenv');
 dotenv.config();
 const { PORTAL_URL, USER, SENHA, FLAG_OS, WINDOWS_PATCH, LINUX_PATCH } = process.env;
@@ -15,13 +17,19 @@ var sessions = []
     usuario e senha do funcionario devera ser armazenado em banco de dados para resgate automatico (login da api)
     usando como parametros de identificação o cpf do funcionario
 */
-const auth = async (idFuncionario) => {
+const auth = async (idFuncionario, cacheOff) => {
 
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
 
         if (!idFuncionario) {
             console.log("\r\n idFuncionario não informado");
             resolve(false);
+        }
+
+        if (cacheOff) {
+
+            await cacheRemove(idFuncionario)
+
         }
 
 
@@ -36,114 +44,220 @@ const auth = async (idFuncionario) => {
             slowMo: 100,
         };
 
-        puppeteer.launch(launchOptions).then(async browser => {
-            const page = await browser.newPage()
-            await page.setViewport({
-                width: 1024,
-                height: 768
-            });
+        try {
 
-            //configurações de download
-            const client = await page.target().createCDPSession();
-            await client.send('Page.setDownloadBehavior', {
-                behavior: 'allow',
-                downloadPath: "./public/files/download",
+            puppeteer.launch(launchOptions).then(async browser => {
+
+                try {
+                    const page = await browser.newPage()
+                    await page.setViewport({
+                        width: 1024,
+                        height: 768
+                    });
+
+                    //configurações de download
+                    const client = await page.target().createCDPSession();
+                    await client.send('Page.setDownloadBehavior', {
+                        behavior: 'allow',
+                        downloadPath: "./public/files/download",
+                    })
+
+                    await page.setJavaScriptEnabled(true);
+
+                    await page.goto(PORTAL_URL, { waitUntil: "networkidle2", timeout: 0 });
+
+                    //await page.waitForNavigation()
+                    await page.waitForSelector('body'); //aguardar todo carregamento da pagina
+                    //await page.waitForNavigation(2000);
+                    let logged = await verifyElementExist(page, '.header__username');
+
+                    if (logged) {
+
+                        await browser.close();
+                        resolve(page);
+                        return;
+                    }
+
+                    // await page.setViewport({ width: 734, height: 1024 });
+                    //await page.$eval('#trauth-continue-signin-btn', form => form.click());
+                    let foundElement = await verifyElementExist(page, 'input[name="username"]')
+
+                    if (foundElement === false) {
+                        await page.keyboard.press("Enter");
+                    }
+
+                    await page.waitForSelector('input[name="username"]', { visible: true });
+                    await page.type('input[name="username"]', USER);
+
+                    //_button-login-id
+                    // await page.$eval('._button-login-id', form => form.click());
+                    foundElement = await verifyElementExist(page, 'input[id="password"]')
+
+                    if (foundElement === false) {
+                        await page.keyboard.press("Enter");
+                    }
+
+                    await page.waitForSelector('input[id="password"]', { visible: true });
+                    await page.type('input[id="password"]', SENHA);
+
+                    // await page.waitForNavigation(5000);
+
+                    await page.keyboard.press("Enter");
+
+                    //await page.screenshot({ path: `./teste.jpg` });
+                    await page.waitForNavigation()
+
+                    //tratar cookies
+                    let cookies = await page.cookies();
+
+                    await page.waitForSelector('body');
+
+                    //retornar dados do localStoage da pagina
+                    let token = await page.evaluate(async () => {
+
+                        var tk = window.localStorage.getItem('onvio-uds-token')
+                        localStorage.setItem("token", tk); //working
+                        let { token } = localStorage
+                        return token;
+                        // return window.localStorage.getItem('onvio-uds-token')
+
+                    })
+
+                    if (token) {
+                        cookies[1].value = token
+                    }
+
+                    let fileDir = `./cookies/${idFuncionario}/cookies.json`
+                    let dir = `./cookies/${idFuncionario}`
+                    if (!fs.existsSync(dir)) {
+                        //Efetua a criação do diretório
+                        fs.mkdirSync(dir);
+                        await fsp.writeFile(fileDir, JSON.stringify(cookies, null, 2));
+                    }
+
+                    try {
+
+                        fs.writeFileSync(fileDir, JSON.stringify(cookies, null, 2));
+
+                    } catch (error) {
+
+                        console.log("\r\n Erro ao gerar o cookie: ", error)
+
+                    }
+                    console.log("Cookies are ready");
+
+                    // await page.waitForNavigation()
+
+                    const cookiesString = await fsp.readFile(fileDir);
+                    cookies = JSON.parse(cookiesString);
+                    await page.setCookie(...cookies);
+                    console.log("\r\n Os Cookies foram gerados: ", cookies)
+
+                    let loggedIn = await page.waitForSelector('[href*=logout]', { timeout: 10000 }).catch(e => {
+
+                    })
+
+                    //await page.waitForNavigation()
+                    await browser.close();
+                    resolve(page);
+
+                } catch (error) {
+
+                    console.log("\r\nOcorreu um erro ao inicializar o painel:", error)
+                    console.log("\r\nReinicializando...")
+
+                    await browser.close();
+                    await cacheRemove(idFuncionario)
+                    auth(idFuncionario)
+
+                }
             })
 
-            await page.setJavaScriptEnabled(true);
+        } catch (error) {
 
-            await page.goto(PORTAL_URL, { waitUntil: "networkidle2", timeout: 0 });
-
-            // await page.waitForNavigation()
-
-            //await page.waitForNavigation(2000);
-            let logged = await verifyLogged(page);
-
-            if (logged) {
-                resolve(page);
-                return;
-            }
-
-            // await page.setViewport({ width: 734, height: 1024 });
-
-            await page.waitForSelector('input[data-qe-id="trauth-signin-uid"]', { visible: true });
-            await page.type('input[data-qe-id="trauth-signin-uid"]', USER);
-
-            await page.waitForSelector('input[data-qe-id="trauth-signin-pwd"]', { visible: true });
-            await page.type('input[data-qe-id="trauth-signin-pwd"]', SENHA);
-
-            // await page.waitForNavigation(5000);
-
-            await page.keyboard.press("Enter");
-
-            //await page.screenshot({ path: `./teste.jpg` });
-            await page.waitForNavigation()
-
-            //tratar cookies
-            let cookies = await page.cookies();
-            let fileDir = `./cookies/${idFuncionario}/cookies.json`
-            let dir = `./cookies/${idFuncionario}`
-            if (!fs.existsSync(dir)) {
-                //Efetua a criação do diretório
-                fs.mkdirSync(dir);
-                fs.writeFile(fileDir, JSON.stringify(cookies, null, 2));
-            }
-
-            try {
-
-                fs.writeFileSync(fileDir, JSON.stringify(cookies, null, 2));
-
-            } catch (error) {
-
-                console.log("\r\n Erro ao gerar o cookie: ", error)
-
-            }
-            console.log("Cookies are ready");
-
-            await page.waitForNavigation()
-
-            const cookiesString = await fs.readFile(fileDir);
-            cookies = JSON.parse(cookiesString);
-            await page.setCookie(...cookies);
-            console.log("\r\n Os Cookies foram gerados: ", cookies)
-
-            await page.waitForNavigation()
+            console.log("\r\nOcorreu um erro ao iniciaalizar o browser: ", error)
+            console.log("\r\nReinicializando...")
             await browser.close();
-            resolve(page);
-        })
-    })
-
-
-}
-
-
-const verifyLogged = async (page) => {
-    return new Promise(async (resolve) => {
-
-        const isLoggedIn = await page.evaluate(async () => {
-            return await new Promise(resolve => {
-                // Insira aqui a lógica para verificar se está logado.
-                // Por exemplo, você pode procurar por elementos específicos que só são visíveis quando o usuário está logado.
-                // Se encontrar esses elementos, retorne true; caso contrário, retorne false.
-                resolve(document.querySelector('.header__username') !== null);
-            })
-        });
-        console.log(isLoggedIn)
-        if (isLoggedIn) {
+            await cacheRemove(idFuncionario)
+            auth(idFuncionario)
             resolve(true)
-        } else {
-            resolve(false)
+
         }
     })
+
+
 }
 
 
-const setupSession = async (page) => {
+
+const verifyElementExist = async (page, ident) => {
     return new Promise(async (resolve) => {
+
+        if (!ident) {
+            resolve(false)
+            return;
+        }
+
+        try {
+
+            /*    resolve(page.evaluate(async () => {
+                    return await new Promise(resolve => {
+                       
+                        try {
+                            let element = document.querySelector(`${ident}`)
+                            let exist = (element) ? true : false
+                            resolve(exist);
+                        } catch (error) {
+                            console.log("\r\nOcorreu um erro ao validar ao pesquisar elemento: ", error)
+                            resolve(false)
+                        }
+                    })
+                })) */
+
+            resolve(await page.evaluate((ident_) => {
+                let el = document.querySelector(`${ident_}`)
+                return el ? true : false
+            }, ident))
+
+        } catch (error) {
+
+            console.log("\r\nOcorreu um erro ao validar ao pesquisar elemento: ", error)
+            resolve(false)
+
+        }
 
 
     })
+}
 
+
+const cacheRemove = async (idFuncionario, type) => {
+    return new Promise(async (resolve) => {
+
+        if (!idFuncionario) {
+            resolve(false)
+            return
+        }
+
+        let cookieFile = `./cookies/${idFuncionario}/cookies.json`
+        let cookieDir = `./cookies/${idFuncionario}`
+        let cacheBrowserDir = `./cache/${idFuncionario}`
+
+        //fs.rmSync(cookieDir, { recursive: true, force: true });
+        //fs.rmSync(cacheBrowserDir, { recursive: true, force: true });
+
+        await removeDirectory(cookieDir)
+        await removeDirectory(cacheBrowserDir)
+
+        /* fs.unlink(cookieFile, function (err) {
+             if (err) return console.log(err);
+             console.log('\r\nCache removido com sucesso!');
+         }) */
+
+        resolve(true)
+
+
+    })
 }
 
 module.exports = { auth };
