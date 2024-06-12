@@ -1,4 +1,4 @@
-const { start, accountData, folhaList, holerite } = require('./folha-route');
+const { start, accountData, folhaList, holerite, holeriteDirect } = require('./folha-route');
 
 const index = async (app) => {
 
@@ -8,7 +8,8 @@ const index = async (app) => {
 
         app.post('/conta', accountData);
         app.post('/folha/list', folhaList);
-        app.post('/folha/holerite', holerite);
+        app.post('/folha/holeriteByInfo', holerite);
+        app.post('/folha/holerite', holeriteDirect);
 
         resolve(app)
 

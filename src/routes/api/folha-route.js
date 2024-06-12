@@ -60,5 +60,18 @@ const holerite = async (req, res) => {
     })
 }
 
+const holeriteDirect = async (req, res) => {
 
-module.exports = { start, accountData, folhaList, holerite }
+    return new Promise(async (resolve, reject) => {
+
+        const params = req.body
+
+        let accountData = await folheCtr.holeriteDirect(params)
+
+        resolve(res.status(200).send(accountData))
+
+    })
+}
+
+
+module.exports = { start, accountData, folhaList, holerite, holeriteDirect }

@@ -1,60 +1,92 @@
 const axios = require('axios');
 const fs = require("fs");
 let token;
+
+const dotenv = require('dotenv');
+dotenv.config();
+const { baseURL } = process.env;
 //console.log(cookies[1])
 
 const accountData = async (idFuncionario) => {
 
     return new Promise(async (resolve, reject) => {
 
-        let fileExist = (fs.existsSync(`./cookies/${idFuncionario}/cookies.json`))
-
-        if (!fileExist) {
-            console.log("\r\n Arquivo de cookies não encontrado, realizar login (gerar novas credenciais).")
-            resolve(false)
-        }
-
-        const cookiesString = fs.readFileSync(`./cookies/${idFuncionario}/cookies.json`);
-        const cookies = JSON.parse(cookiesString);
-
-        let { value } = cookies[1]
-
-        if (!value) {
-            console.log("\r\n Tokens (cookies) não encontrado!")
-            resolve(false)
-        }
-
-        token = value
-
-        let config = {
-            method: 'get',
-            maxBodyLength: Infinity,
-            url: 'https://onvio.com.br/api/profiles/v1/accounts?active=true&hideNonOnvio=false',
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-                'Authorization': `UDSLongToken ${value}`
-            }
-        };
-
         try {
+            let fileExist = (fs.existsSync(`./cookies/${idFuncionario}/cookies.json`))
 
-            axios.request(config)
-                .then((response) => {
-                    // console.log(JSON.stringify(response.data));
-
-                    resolve(response.data)
-                })
-                .catch((error) => {
-                    console.log("\r\n Ocorreu um erro ao realizar a requisição http: ", error);
-                    resolve(false)
-                });
+            if (!fileExist) {
+                console.log("\r\n Arquivo de cookies não encontrado, realizar login (gerar novas credenciais).")
+                resolve(false)
+            }
 
         } catch (error) {
 
-            console.log | ("\r\nOcorreu um erro ao executar a função: ", error)
+            console.log("\r\n Erro ao pesquisar o Arquivo de cookies, realizar login na api para gerar novas credenciais (token).")
             resolve(false)
 
         }
+
+
+        let cookies = {}
+
+        try {
+            const cookiesString = fs.readFileSync(`./cookies/${idFuncionario}/cookies.json`);
+            cookies = JSON.parse(cookiesString);
+
+            if (cookies.length == 0) {
+
+                console.log | ("\r\nO arquivo de tokens não possui token do funcionario: ", error)
+                resolve(false)
+
+            }
+
+            let { value } = cookies[1]
+
+            if (!value) {
+                console.log("\r\n Tokens (cookies) não encontrado!")
+                resolve(false)
+            }
+
+            token = value
+
+            let config = {
+                method: 'get',
+                maxBodyLength: Infinity,
+                url: 'https://onvio.com.br/api/profiles/v1/accounts?active=true&hideNonOnvio=false',
+                headers: {
+                    'Accept': 'application/json, text/plain, */*',
+                    'Authorization': `UDSLongToken ${token}`
+                }
+            };
+
+            try {
+
+                axios.request(config)
+                    .then((response) => {
+                        // console.log(JSON.stringify(response.data));
+
+                        resolve(response.data)
+                    })
+                    .catch((error) => {
+                        console.log("\r\n Ocorreu um erro ao realizar a requisição http: ", error);
+                        resolve(false)
+                    });
+
+            } catch (error) {
+
+                console.log | ("\r\nOcorreu um erro ao executar a função: ", error)
+                resolve(false)
+
+            }
+
+
+        } catch (error) {
+
+            console.log | ("\r\nOcorreu ao consultar arquivo de tokens do funcionario: ", error)
+            resolve(false)
+
+        }
+
 
 
     })
@@ -190,7 +222,7 @@ const holerite = async (fileId, accountId, idFuncionario) => {
 
                     response.data.pipe(writer);
 
-                    resolve({ "pdf": `files/holerites/${idFuncionario}/${fileId}.pdf` })
+                    resolve({ "pdf": `${baseURL}/files/holerites/${idFuncionario}/${fileId}.pdf` })
                 })
                 .catch((error) => {
                     console.log("\r\n Ocorreu um erro ao realizar download do holerite: ", error);
