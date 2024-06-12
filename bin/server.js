@@ -21,6 +21,7 @@ let serverSocket = {};
 
 var Spinnies = require("spinnies");
 const { builtinModules } = require('module');
+const { work } = require("../src/worker/renewTokens")
 
 var app;
 
@@ -67,7 +68,8 @@ app_.then(async function (routes) {
     serverSocket = await socketCtr.inicialize(socket);
 
     //console.log("Socket io iniciado: ",serverSocket);   
-
+    //iniciar serviços de atualização de token (painel dominio)
+    work()
 
 
     /* verificar funcionamento */

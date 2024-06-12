@@ -1,20 +1,21 @@
 
+const moment = require('moment');
 
 const validateTimestamp = (timestamp) => {
 
     return new Promise(async (resolve, reject) => {
 
-        const currentTime = Date.now(); // Obtém a data e hora atual em milissegundos
-        const targetTime = new Date(timestamp).getTime(); // Converte o timestamp para milissegundos
+        // Converte o timestamp fornecido em uma data
+        const eventDate = new Date(timestamp * 1000);  //converter timstamp UNixpara data legivel
 
-        if (isNaN(targetTime)) {
-            throw new Error('Invalid timestamp'); // Lança um erro se o timestamp não for válido           
-        }
+        // Obtém a data e hora atual
+        const currentDate = new Date();
 
-        resolve(currentTime >= targetTime); // Retorna true se a data e hora já foram atingidas, caso contrário false
+        // Compara as datas
+        resolve(eventDate < currentDate)
 
     })
 };
 
 
-modules.exports = { validateTimestamp }
+module.exports = { validateTimestamp }
