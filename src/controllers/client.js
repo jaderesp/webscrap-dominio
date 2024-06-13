@@ -7,7 +7,7 @@ const { removeDirectory } = require("./utils/filesUtils")
 var fsp = require('fs/promises');
 const dotenv = require('dotenv');
 dotenv.config();
-const { PORTAL_URL, USER, SENHA, FLAG_OS, WINDOWS_PATCH, LINUX_PATCH } = process.env;
+const { PORTAL_URL, USUARIO, SENHA, FLAG_OS, WINDOWS_PATCH, LINUX_PATCH, LINUX_PATCH_CHROME } = process.env;
 var sessions = []
 //puppeteer.use(StealthPlugin());
 
@@ -34,9 +34,9 @@ const auth = async (idFuncionario, cacheOff) => {
 
 
         let launchOptions = {
-            headless: false,
-            userDataDir: `./cache/${idFuncionario}`,
-            executablePath: (FLAG_OS == 'windows') ? WINDOWS_PATCH : LINUX_PATCH,
+            headless: true,
+            USUARIODataDir: `./cache/${idFuncionario}`,
+            executablePath: (FLAG_OS == 'windows') ? WINDOWS_PATCH : ((FLAG_OS == 'linux_chrome') ? LINUX_PATCH_CHROME : LINUX_PATCH),
             //executablePath: 'C:\\Program Files\\Google\\Chrome\\Application', //'/usr/bin/chromium-browser', // because we are using puppeteer-core so we must define this option
             // args: config.browser,
             args: ['--no-sandbox'],
@@ -62,9 +62,14 @@ const auth = async (idFuncionario, cacheOff) => {
                         downloadPath: "./public/files/download",
                     })
 
+                    //desabilitar o cache da pagina
+                    /* await client.send('Network.setCacheDisabled', {
+                         cacheDisabled: true,
+                     }); */
+
                     await page.setJavaScriptEnabled(true);
 
-                    await page.goto(PORTAL_URL, { waitUntil: "networkidle2", timeout: 0 });
+                    await page.goto(PORTAL_URL, { waitUntil: "networkidle2", timeout: (60 * 1000 * 3) });
 
                     //await page.waitForNavigation()
                     await page.waitForSelector('body'); //aguardar todo carregamento da pagina
@@ -85,9 +90,12 @@ const auth = async (idFuncionario, cacheOff) => {
                     if (foundElement === false) {
                         await page.keyboard.press("Enter");
                     }
-
+                    //printar tela
+                    await page.screenshot({
+                        path: 'screenshot.jpg'
+                    });
                     await page.waitForSelector('input[name="username"]', { visible: true });
-                    await page.type('input[name="username"]', USER);
+                    await page.type('input[name="username"]', USUARIO);
 
                     //_button-login-id
                     // await page.$eval('._button-login-id', form => form.click());
@@ -96,6 +104,10 @@ const auth = async (idFuncionario, cacheOff) => {
                     if (foundElement === false) {
                         await page.keyboard.press("Enter");
                     }
+
+                    await page.screenshot({
+                        path: 'screenshot.jpg'
+                    });
 
                     await page.waitForSelector('input[id="password"]', { visible: true });
                     await page.type('input[id="password"]', SENHA);
