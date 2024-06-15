@@ -1,4 +1,4 @@
-const { start, accountData, folhaList, holerite, holeriteDirect } = require('./folha-route');
+const { start, accountData, folhaList, holerite, holeriteDirect, feriasReciboDirect, rescisaoComprovanteDirect } = require('./folha-route');
 
 const index = async (app) => {
 
@@ -10,6 +10,10 @@ const index = async (app) => {
         app.post('/folha/list', folhaList);
         app.post('/folha/holeriteByInfo', holerite);
         app.post('/folha/holerite', holeriteDirect);
+        //comprovante de ferias
+        app.post('/folha/ferias', feriasReciboDirect);
+        //rescisão
+        app.post('/folha/rescisao', rescisaoComprovanteDirect);
 
         resolve(app)
 

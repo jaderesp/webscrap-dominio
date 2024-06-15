@@ -73,5 +73,32 @@ const holeriteDirect = async (req, res) => {
     })
 }
 
+const feriasReciboDirect = async (req, res) => {
 
-module.exports = { start, accountData, folhaList, holerite, holeriteDirect }
+    return new Promise(async (resolve, reject) => {
+
+        const params = req.body
+
+        let accountData = await folheCtr.feriasReciboDirect(params)
+
+        resolve(res.status(200).send(accountData))
+
+    })
+}
+
+const rescisaoComprovanteDirect = async (req, res) => {
+
+    return new Promise(async (resolve, reject) => {
+
+        const params = req.body
+
+        let accountData = await folheCtr.rescisaoComprovanteDirect(params)
+
+        resolve(res.status(200).send(accountData))
+
+    })
+}
+
+
+
+module.exports = { start, accountData, folhaList, holerite, holeriteDirect, feriasReciboDirect, rescisaoComprovanteDirect }
